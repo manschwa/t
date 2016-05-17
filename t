@@ -18,8 +18,38 @@ _t_do() {
 
 # Clock in to the given project
 # Clock in to the last project if no project is given
+# Adds some formatting at the beginning of every year/week/day as comment
 _t_in() {
   [ ! "$1" ] && set -- "$@" "$(_t_last)"
+  lastLine=`tail -n 1 $timelog | grep -o '^.'`
+  # if last line was a chechout (begins with 'o')
+  if [ "$lastLine" = "o" ]; then
+      echo >>$timelog
+      dayOfWeek=`date '+%u'`
+      if [ "$dayOfWeek" -eq "1" ]; then
+          dayOfMonth=`date '+%d'`
+          monthName=`date '+%B'`
+          year=`date '+%Y'`
+          if [ "$dayOfMonth" -lt "8" ]; then
+              monthOfYear=`date '+%m'`
+              if [ "$monthOfYear" -eq "1" ]; then
+                  echo '############################################################' >>$timelog
+                  echo '#                                                          #' >>$timelog
+                  echo '#                           '$year'                           #' >>$timelog
+                  echo '#                                                          #' >>$timelog
+                  echo '############################################################' >>$timelog
+                  echo >>$timelog
+              fi
+              echo '########################################' >>$timelog
+              echo '#             '$monthName $year >>$timelog
+              echo '########################################' >>$timelog
+              echo >>$timelog
+          fi
+          echo '# Week' `date '+%V'` >>$timelog
+          echo '# =====================================' >>$timelog
+      fi
+      echo '#' `date '+%A'` >>$timelog
+  fi
   echo i `date '+%Y-%m-%d %H:%M:%S'` $* >>$timelog
 }
 
@@ -51,6 +81,7 @@ _t_usage() {
 Usage: t action
 actions:
      in - clock into project or last project
+     begin - same as 'in', adds the weekday as a comment
      out - clock out of project
      sw,switch - switch projects
      bal - show balance
@@ -79,11 +110,12 @@ __t_extract_project() {
 }
 
 action=$1; shift
-[ "$TIMELOG" ] && timelog="$TIMELOG" || timelog="${HOME}/.timelog.ldg"
+[ "$TIMELOG" ] && timelog="$TIMELOG" || timelog="${HOME}/projects/ledger/time.ledger"
 
 case "${action}" in
   in)   _t_in "$@";;
   out)  _t_out "$@";;
+  begin)  _t_begin "$@";;
   sw)   _t_sw "$@";;
   bal) _t_ledger bal "$@";;
   hours) _t_ledger bal -p "since today" "$@";;
