@@ -81,7 +81,6 @@ _t_usage() {
 Usage: t action
 actions:
      in - clock into project or last project
-     begin - same as 'in', adds the weekday as a comment
      out - clock out of project
      sw,switch - switch projects
      bal - show balance
@@ -110,12 +109,11 @@ __t_extract_project() {
 }
 
 action=$1; shift
-[ "$TIMELOG" ] && timelog="$TIMELOG" || timelog="${HOME}/projects/ledger/time.ledger"
+[ "$TIMELOG" ] && timelog=`echo $TIMELOG` || timelog="${HOME}/.timelog.ldg"
 
 case "${action}" in
   in)   _t_in "$@";;
   out)  _t_out "$@";;
-  begin)  _t_begin "$@";;
   sw)   _t_sw "$@";;
   bal) _t_ledger bal "$@";;
   hours) _t_ledger bal -p "since today" "$@";;
